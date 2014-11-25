@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+
+
+require "optparse"
+require "ostruct"
+require "pp"
+require "FileUtils"
+
+class Parser 
+  def self.parse(args)
+    options = OpenStruct.new
+    options.input_dir = FileUtils.pwd
+    options.language = "deu"
+    options.mark = "Copyright ©2014 Me" # TODO: get date from image file
+    options.output_dir = FileUtils.pwd + "/output"
+
+
+    opt_parser = OptionParser.new do | opts | 
+      opts.banner = "Usage: cowl [options]"
+      opts.separator "
+      cowl is a program that will take a directory of images
+      and do the following actions on each image: 1) create a copy of the image
+      with a watermark, 2) OCR the image and create a txt file containing the
+      text, 3) compile the images into a single PDF document." 
+      opts.separator ""
+      opts.separator "Options:"
+
+      opts.on_tail("-h", "--help", "Show this help message.") do
+        puts opts
+        exit
+      end
+      opts.separator ""
+
+      opts.on("-i", "--input", "Specify the directory where the images are found.") do | input | 
+        options.input_dir = input
+      end
+      opts.separator ""
+
+      opts.on("-l", "--lang", "Set the language for the OCR program to use. This is the language used in the documents. Default is German.") do | lang | 
+        options.language = lang
+      end
+      opts.separator ""
+
+      opts.on("-m", "--mark", "Set the text to be used in the water mark.") do | wm | 
+        options.mark = wm
+      end
+      opts.separator ""
+
+      opts.on("-o", "--output", "Set the directory name where the watermark and OCR files are output.") do | output | 
+        options.output_dir = output
+      end
+      opts.separator ""
+
+    end #opt_parser
+
+    opt_parser.parse!(args)
+    options
+
+  end #parse
+
+end
+
+def clean
+  remove_entry_secure(options.output_dir)
+end
+
+options = Parser.parse(ARGV)
+pp options
+
+
+# Create output directory if it doesn't exist
+FileUtils::mkdir_p(File.dirname("options.output_dir"))
+
+
