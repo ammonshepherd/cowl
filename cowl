@@ -5,6 +5,7 @@ require "optparse"
 require "ostruct"
 require "pp"
 require "FileUtils"
+require "RMagick"
 
 class Parser 
   def self.parse(args)
@@ -58,34 +59,49 @@ class Parser
     options
 
   end #parse
+end #Parser
 
-end
+
 
 class Cowl
-  attr_accessor :options
+  attr_accessor :options, :working_images
+
   WORK_DIRS = %w(text marked)
+  EXTENSIONS = "{jpg,jpeg,tif,tiff,gif,png}"
+
   def initialize(args)
     @options = args
     self.setup
+    self.image_files
   end
 
   def setup
     # Create output directory if it doesn't exist
     WORK_DIRS.each do | directory |
-      path = @options.output_dir + "/#{directory}"
-      FileUtils.mkdir_p(path)
+      FileUtils.mkdir_p(@options.output_dir + "/#{directory}")
     end
-
   end
 
   def clean
     FileUtils.rm_rf(@options.output_dir)
   end
-end
+
+  def image_files
+    @working_images ||= Dir.glob("#{@options.input_dir}/*.#{EXTENSIONS}", File::FNM_CASEFOLD)
+  end
+
+  def to_png
+    @working_images.each do | img |
+      file_name = File.basename(img, ".*")
+      image = Magick::Image.read(img).first
+      image.format = "PNG"
+      image.despeckle
+      image.write("#{@options.output_dir}/marked/#{file_name}.png")
+    end
+  end
+end #Cowl
 
 
+cowl = Cowl.new(Parser.parse(ARGV))
 
-options = Parser.parse(ARGV)
-
-cowl = Cowl.new(options)
-pp cowl.clean
+pp cowl.to_png
