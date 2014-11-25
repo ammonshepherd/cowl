@@ -19,9 +19,10 @@ class Parser
       opts.banner = "Usage: cowl [options]"
       opts.separator "
       cowl is a program that will take a directory of images
-      and do the following actions on each image: 1) create a copy of the image
-      with a watermark, 2) OCR the image and create a txt file containing the
-      text, 3) compile the images into a single PDF document." 
+      and do the following actions on each image: 
+        1) create a copy of the image with a watermark, 
+        2) OCR the image and create a txt file containing the text, 
+        3) compile the images into a single PDF document." 
       opts.separator ""
       opts.separator "Options:"
 
@@ -60,15 +61,31 @@ class Parser
 
 end
 
-def clean
-  remove_entry_secure(options.output_dir)
+class Cowl
+  attr_accessor :options
+  WORK_DIRS = %w(text marked)
+  def initialize(args)
+    @options = args
+    self.setup
+  end
+
+  def setup
+    # Create output directory if it doesn't exist
+    WORK_DIRS.each do | directory |
+      path = @options.output_dir + "/#{directory}"
+      FileUtils.mkdir_p(path)
+    end
+
+  end
+
+  def clean
+    FileUtils.rm_rf(@options.output_dir)
+  end
 end
 
+
+
 options = Parser.parse(ARGV)
-pp options
 
-
-# Create output directory if it doesn't exist
-FileUtils::mkdir_p(File.dirname("options.output_dir"))
-
-
+cowl = Cowl.new(options)
+pp cowl.clean
