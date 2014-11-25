@@ -1,17 +1,18 @@
-= Description:
+# Description:
 
-cowl is a program that will take a directory of images and do the following
-actions on each image: 1) create a copy of the image with a watermark, 2) OCR
-the image and create a txt file containing the text, 3) compile the images into
-a single PDF document.
+cowl is a program that will take a directory of images and do the following actions on each image: 
+    1) create a copy of the image with a watermark, 
+    2) OCR the image and create a txt file containing the text, 
+    3) compile the images into a single PDF document.
 
 
-= Usage: 
+
+# Usage: 
 
 cowl [options]
 
 
-= Options:
+# Options:
 
     -i, --input                      Specify the directory where the images are found.
 
