@@ -33,6 +33,13 @@ class Parser
       end
       opts.separator ""
 
+      opts.on("-c", "--cleanup", "Delete images and folders created by running this script.") do 
+        puts "Deleting output directory and all files within."
+        FileUtils.rm_rf(options.output_dir)
+        exit
+      end
+      opts.separator ""
+
       opts.on("-i", "--input", "Specify the directory where the images are found.") do | input | 
         options.input_dir = input
       end
@@ -64,7 +71,7 @@ end #Parser
 
 
 class Cowl
-  attr_accessor :options, :working_images
+  attr_accessor :options, :working_images, :copied_images
 
   WORK_DIRS = %w(text marked)
   EXTENSIONS = "{jpg,jpeg,tif,tiff,gif,png}"
@@ -90,14 +97,33 @@ class Cowl
     @working_images ||= Dir.glob("#{@options.input_dir}/*.#{EXTENSIONS}", File::FNM_CASEFOLD)
   end
 
+  def copied_files
+    @copied_images ||= Dir.glob("#{@options.output_dir}/marked/*")
+  end
+
   def to_png
+    num = 1
     @working_images.each do | img |
+      puts "Making a copy of #{img}."
       file_name = File.basename(img, ".*")
+      file_copy = "#{@options.output_dir}/marked/#{file_name}.png"
+      if File.file?(file_copy)
+        file_copy = "#{@options.output_dir}/marked/#{file_name}_#{num}.png" 
+        num += 1
+      end
       image = Magick::Image.read(img).first
       image.format = "PNG"
       image.despeckle
-      image.write("#{@options.output_dir}/marked/#{file_name}.png")
+      image.write(file_copy)
     end
+  end
+
+  def to_pdf
+    self.to_png
+    self.copied_files
+    puts "Combining images into one pdf."
+    pdf = Magick::ImageList.new(*@copied_images)
+    pdf.write("#{@options.output_dir}/combined.pdf")
   end
 end #Cowl
 
