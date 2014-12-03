@@ -15,6 +15,7 @@ class Parser
     options.language = "deu"
     options.mark = "Copyright ©2014 Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
+    options.water = FileUtils.pwd + "/mark.png" # TODO: get date from image file
 
 
     opt_parser = OptionParser.new do | opts | 
@@ -58,6 +59,11 @@ class Parser
 
       opts.on("-o", "--output", "Set the directory name where the watermark and OCR files are output.") do | output | 
         options.output_dir = output
+      end
+      opts.separator ""
+
+      opts.on("-w", "--watermark", "Use an image for the watermark") do | water | 
+        options.water = water
       end
       opts.separator ""
 
@@ -106,17 +112,17 @@ class Cowl
   def to_png
     num = 1
     @working_images.each do | img |
-      puts "Making a copy of #{img}."
       file_name = File.basename(img, ".*")
-      file_copy = "#{@options.output_dir}/marked/#{file_name}.png"
+      puts "Making a copy of #{file_name}."
+      file_copy = "#{file_name}.png"
       if File.file?(file_copy)
-        file_copy = "#{@options.output_dir}/marked/#{file_name}_#{num}.png" 
+        file_copy = "#{file_name}_#{num}.png" 
         num += 1
       end
       image = Image.read(img).first
       image.format = "PNG"
       image.despeckle
-      image.write(file_copy)
+      image.write("#{@options.output_dir}/marked/#{file_copy}")
     end
   end
 
