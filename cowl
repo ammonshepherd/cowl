@@ -13,7 +13,7 @@ class Parser
     options = OpenStruct.new
     options.input_dir = FileUtils.pwd
     options.language = "deu"
-    options.mark = "Copyright ©2014 Me" # TODO: get date from image file
+    options.mark = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
     options.water = FileUtils.pwd + "/mark.png" # TODO: get date from image file
 
@@ -125,7 +125,7 @@ class Cowl
     @working_images.each do | img |
       num += 1
       new_file = self.file_name(img, num)
-      puts "Making a copy of #{img}."
+      puts "Making a copy of #{img} as #{new_file}."
       image = Image.read(img).first
       image.format = "PNG"
       image.despeckle
@@ -140,12 +140,28 @@ class Cowl
     pdf.write("#{@options.output_dir}/combined.pdf")
   end
 
+  def watermark(image)
+    mark = Image.new(image.columns, image.rows)
+    text = Draw.new
+    text.gravity = SouthGravity
+    text.pointsize = image.columns / 40
+    text.font_family = "Arial"
+    text.font_weight = BoldWeight
+    text.stroke = 'none'
+    text.annotate(mark, 0, 0, 0, 0, @options.mark)
+    mark = mark.shade(true, 270, 50)
+  end
+
   def to_mark
     self.copied_files
+    @copied_images.each do | img |
+      image = Image.read(img).first
+      image.composite!(watermark(image), CenterGravity, OverlayCompositeOp)
+      image.write(img)
+    end
   end
 end #Cowl
 
 
 cowl = Cowl.new(Parser.parse(ARGV))
-
-cowl.to_png
+cowl.to_mark
