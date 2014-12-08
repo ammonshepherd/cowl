@@ -80,7 +80,9 @@ end #Parser
 class Cowl
   attr_accessor :options, :working_images, :copied_images
 
-  WORK_DIRS = %w(text marked)
+  OCR_DIR = "text"
+  MARK_DIR = "marked"
+  WORK_DIRS = [OCR_DIR, MARK_DIR]
   EXTENSIONS = "{jpg,jpeg,tif,tiff,gif,png}"
 
   def initialize(args)
@@ -106,23 +108,28 @@ class Cowl
 
   def copied_files
     self.to_png
-    @copied_images ||= Dir.glob("#{@options.output_dir}/marked/*")
+    @copied_images ||= Dir.glob("#{@options.output_dir}/#{MARK_DIR}/*")
+  end
+
+  def file_name(image, counter)
+    base_name = File.basename(image, ".*")
+    new_name = "#{base_name}.png"
+    if File.file?("#{@options.output_dir}/#{MARK_DIR}/#{new_name}")
+      new_name = "#{base_name}_#{counter}.png" 
+    end
+    return new_name
   end
 
   def to_png
-    num = 1
+    num = 0
     @working_images.each do | img |
-      file_name = File.basename(img, ".*")
-      puts "Making a copy of #{file_name}."
-      file_copy = "#{file_name}.png"
-      if File.file?(file_copy)
-        file_copy = "#{file_name}_#{num}.png" 
-        num += 1
-      end
+      num += 1
+      new_file = self.file_name(img, num)
+      puts "Making a copy of #{img}."
       image = Image.read(img).first
       image.format = "PNG"
       image.despeckle
-      image.write("#{@options.output_dir}/marked/#{file_copy}")
+      image.write("#{@options.output_dir}/#{MARK_DIR}/#{new_file}")
     end
   end
 
