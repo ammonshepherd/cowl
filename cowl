@@ -15,6 +15,7 @@ class Parser
     options.language = "deu"
     options.mark = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
+    options.pdf = true
     options.water = FileUtils.pwd + "/mark.png" # TODO: get date from image file
 
 
@@ -59,6 +60,11 @@ class Parser
 
       opts.on("-o", "--output", "Set the directory name where the watermark and OCR files are output.") do | output | 
         options.output_dir = output
+      end
+      opts.separator ""
+
+      opts.on("-p", "--pdf", "Create a PDF of all images.") do | pdf | 
+        options.pdf = pdf
       end
       opts.separator ""
 
@@ -107,7 +113,6 @@ class Cowl
   end
 
   def copied_files
-    self.to_png
     @copied_images ||= Dir.glob("#{@options.output_dir}/#{MARK_DIR}/*")
   end
 
@@ -120,7 +125,7 @@ class Cowl
     return new_name
   end
 
-  def to_png
+  def copy
     num = 0
     @working_images.each do | img |
       num += 1
@@ -133,8 +138,14 @@ class Cowl
     end
   end
 
+  def to_png
+    self.copy unless Dir["#{@options.output_dir}/#{MARK_DIR}/*"].empty? == false
+
+    self.to_mark unless @options.mark == false
+  end
+
   def to_pdf
-    self.copied_files
+    self.to_png
     puts "Combining images into one pdf."
     pdf = ImageList.new(*@copied_images)
     pdf.write("#{@options.output_dir}/combined.pdf")
@@ -160,8 +171,13 @@ class Cowl
       image.write(img)
     end
   end
+
+  def run
+    to_pdf unless @options.pdf == false
+  end
+
 end #Cowl
 
 
 cowl = Cowl.new(Parser.parse(ARGV))
-cowl.to_mark
+cowl.run
