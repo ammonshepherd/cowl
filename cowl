@@ -6,7 +6,7 @@ require "ostruct"
 require "pp"
 require "FileUtils"
 require "RMagick"
-require "tesseract"
+#require "rtesseract"
 
 class Parser 
   def self.parse(args)
@@ -14,7 +14,7 @@ class Parser
     options.cleanup = false
     options.do_watermark = false
     options.input_dir = FileUtils.pwd
-    options.language = "deu"
+    options.language = ":deu"
     options.mark = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
     options.pdf = false
@@ -54,7 +54,7 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-l", "--lang", "Set the language for the OCR program to use. This is the language used in the documents. Default is German.") do | lang | 
+      opts.on("-l", "--lang", "Set the language for the OCR program to use. This is the language used in the documents. Default is German [:deu].") do | lang | 
         options.language = lang
       end
       opts.separator ""
@@ -145,7 +145,7 @@ class Cowl
       num += 1
       new_file = self.file_name(img, num)
       puts "Making a copy of #{img} as #{new_file}."
-      image = Image.read(img).first
+      image = Magick::Image.read(img).first
       image.format = "PNG"
       image.despeckle
       image.write("#{@options.output_dir}/#{MARK_DIR}/#{new_file}")
@@ -186,6 +186,13 @@ class Cowl
   end
 
   def to_text
+    e = Tesseract::Engine.new {|ew|
+      ew.language = @options.language
+    }
+
+    @copied_images.each do | img |
+      e.text_for(img).strip
+    end
 
   end
 
