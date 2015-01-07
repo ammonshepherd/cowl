@@ -4,15 +4,15 @@
 require "optparse"
 require "ostruct"
 require "pp"
-require "FileUtils"
+require "fileutils"
 require "RMagick"
-#require "rtesseract"
+require "rtesseract"
 
 class Parser 
   def self.parse(args)
     options = OpenStruct.new
     options.cleanup = false
-    options.do_watermark = false
+    options.no_watermark = false
     options.input_dir = FileUtils.pwd
     options.language = ":deu"
     options.mark = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
@@ -26,10 +26,12 @@ class Parser
       opts.banner = "Usage: cowl [options]"
       opts.separator "
       cowl is a program that will take a directory of images
-      and do the following actions on each image: 
-        1) create a copy of the image with a watermark, 
+      and do the following actions on each image by default: 
+        1) create a copy of the image with or without a watermark, 
         2) OCR the image and create a txt file containing the text, 
-        3) compile the images into a single PDF document." 
+        3) compile the images into a single PDF document.
+
+      Optional parameters exist to change and/or turn off certain behaviors." 
       opts.separator ""
       opts.separator "Options:"
 
@@ -41,11 +43,6 @@ class Parser
 
       opts.on("-c", "--cleanup", "Delete images and folders created by running this script.") do
         options.cleanup = true
-      end
-      opts.separator ""
-
-      opts.on("-d", "--dowatermark", "Do the watermark thing. Use -m to set the text, or -w to use an image.") do
-        options.do_watermark = true
       end
       opts.separator ""
 
@@ -64,22 +61,27 @@ class Parser
       end
       opts.separator ""
 
+      opts.on("-n", "--nowatermark", "Don't do the watermark thing.") do
+        options.no_watermark = true
+      end
+      opts.separator ""
+
       opts.on("-o", "--output", "Set the directory name where the watermark and OCR files are output.") do | output | 
         options.output_dir = output
       end
       opts.separator ""
 
-      opts.on("-p", "--pdf", "Create a PDF of all images.") do
+      opts.on("-p", "--pdf", "Don't create a PDF of all images.") do
         options.pdf = true
       end
       opts.separator ""
 
-      opts.on("-t", "--text", "Run the OCR software on the image.") do
-        options.pdf = true
+      opts.on("-t", "--text", "Don't run the OCR software on the image.") do
+        options.text = true
       end
       opts.separator ""
 
-      opts.on("-w", "--watermark", "Use an image for the watermark") do | water | 
+      opts.on("-w", "--watermark", "Use the specified image for the watermark") do | water | 
         options.water = water
       end
       opts.separator ""
@@ -98,7 +100,7 @@ class Cowl
   attr_accessor :options, :working_images, :copied_images
 
   OCR_DIR = "text"
-  MARK_DIR = "marked"
+  MARK_DIR = "copies"
   WORK_DIRS = [OCR_DIR, MARK_DIR]
   EXTENSIONS = "{jpg,jpeg,tif,tiff,gif,png}"
 
@@ -164,42 +166,47 @@ class Cowl
   end
 
   def watermark(image)
-    mark = Magick::Image.new(image.columns, image.rows)
+    height = image.columns / 20
+    mark = Magick::Image.new(image.columns, height) { self.background_color = "grey" }
     text = Magick::Draw.new
-    text.gravity = Magick::SouthGravity
-    text.pointsize = image.columns / 40
-    text.font_family = "Arial"
-    text.font_weight = Magick::BoldWeight
-    text.stroke = 'none'
-    text.annotate(mark, 0, 0, 0, 0, @options.mark)
-    mark = mark.shade(true, 270, 50)
+    text.annotate(mark, 0, 0, 0, 0, @options.mark) do
+      text.gravity = Magick::CenterGravity
+      text.pointsize = image.columns / 40
+      text.font_family = "Arial"
+      text.font_weight = Magick::BoldWeight
+      text.fill = "white"
+      text.stroke = "olive"
+    end
+    #mark = mark.shade(false)
+    #mark = mark.wave(2.5, 70).rotate(-90)
+    mark
   end
 
-  def to_mark
+  def add_mark
     self.copied_files
     @copied_images.each do | img |
       puts "Putting watermark on #{img}."
       image = Magick::Image.read(img).first
-      image.composite!(self.watermark(image), Magick::CenterGravity, Magick::OverlayCompositeOp)
+      image.composite!(self.watermark(image), Magick::SouthGravity, Magick::NoCompositeOp)
       image.write(img)
     end
   end
 
   def to_text
-    e = Tesseract::Engine.new {|ew|
-      ew.language = @options.language
-    }
-
+    self.copied_files
     @copied_images.each do | img |
-      e.text_for(img).strip
+      puts "Running OCR on #{img}"
+      base_name = File.basename(img, ".*")
+      ocr = RTesseract.new(img, :lang => "deu")
+      File.open("#{@options.output_dir}/#{OCR_DIR}/#{base_name}.txt", 'w') { |file| file.write(ocr) }
     end
-
   end
 
   def run
     self.clean unless @options.cleanup == false
-    self.to_pdf unless @options.pdf == false
-    self.to_mark unless @options.do_watermark == false
+    self.add_mark unless @options.no_watermark == true
+    self.to_pdf unless @options.pdf == true
+    self.to_text unless @options.text == true
   end
 
 end #Cowl
