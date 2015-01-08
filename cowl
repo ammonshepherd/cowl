@@ -13,13 +13,13 @@ class Parser
     options = OpenStruct.new
     options.cleanup = false
     options.no_watermark = false
+    options.no_pdf = false
+    options.no_text = false
     options.input_dir = FileUtils.pwd
     options.language = ":deu"
-    options.mark = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
+    options.mark_text = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
-    options.pdf = false
-    options.text = false
-    options.water = FileUtils.pwd + "/mark.png" # TODO: get date from image file
+    options.watermark = FileUtils.pwd + "/mark.png" # TODO: get date from image file
 
 
     opt_parser = OptionParser.new do | opts | 
@@ -46,7 +46,12 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-i", "--input", "Specify the directory where the images are found.") do | input | 
+      opts.on("-d", "--dir-out", "Specify a directory where the watermarked images and OCR files are created.") do | output | 
+        options.output_dir = output
+      end
+      opts.separator ""
+
+      opts.on("-i", "--dir-in", "Specify the directory where the images are found.") do | input | 
         options.input_dir = input
       end
       opts.separator ""
@@ -56,33 +61,28 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-m", "--mark", "Set the text to be used in the water mark.") do | wm | 
-        options.mark = wm
-      end
-      opts.separator ""
-
-      opts.on("-n", "--nowatermark", "Don't do the watermark thing.") do
+      opts.on("-n", "--no-watermark", "Don't do the watermark thing.") do
         options.no_watermark = true
       end
       opts.separator ""
 
-      opts.on("-o", "--output", "Set the directory name where the watermark and OCR files are output.") do | output | 
-        options.output_dir = output
+      opts.on("-o", "--no-ocr", "Don't run the OCR software on the image.") do
+        options.no_text = true
       end
       opts.separator ""
 
-      opts.on("-p", "--pdf", "Don't create a PDF of all images.") do
-        options.pdf = true
+      opts.on("-p", "--no-pdf", "Don't create a PDF of all images.") do
+        options.no_pdf = true
       end
       opts.separator ""
 
-      opts.on("-t", "--text", "Don't run the OCR software on the image.") do
-        options.text = true
+      opts.on("-t", "--text", "Set the text to be used in the water mark.") do | text | 
+        options.mark_text = text
       end
       opts.separator ""
 
-      opts.on("-w", "--watermark", "Use the specified image for the watermark") do | water | 
-        options.water = water
+      opts.on("-w", "--watermark", "Specify the image to use for the watermark") do | water | 
+        options.watermark = water
       end
       opts.separator ""
 
@@ -171,7 +171,7 @@ class Cowl
     wmark.opacity("20%")
     wmark.polygon(20,20, 80,100, 120,10, 100,180, 40,90, 20,180)
     wmark.draw(image)
-    wmark.annotate(image, 0, 0, 0, 8, @options.mark) do
+    wmark.annotate(image, 0, 0, 0, 8, @options.mark_text) do
       self.font = 'Helvetica'
       self.font_weight = 900
       self.pointsize = height
@@ -205,8 +205,8 @@ class Cowl
   def run
     self.clean unless @options.cleanup == false
     self.add_mark unless @options.no_watermark == true
-    self.to_pdf unless @options.pdf == true
-    self.to_text unless @options.text == true
+    self.to_pdf unless @options.no_pdf == true
+    self.to_text unless @options.no_text == true
   end
 
 end #Cowl
