@@ -46,12 +46,12 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-d", "--dir-out", "Specify a directory where the watermarked images and OCR files are created.") do | output | 
+      opts.on("-d [/path/to/directory]", "--dir-out [/path/to/directory]", "Specify a directory where the watermarked images and OCR files are created.") do | output | 
         options.output_dir = output
       end
       opts.separator ""
 
-      opts.on("-i", "--dir-in", "Specify the directory where the images are found.") do | input | 
+      opts.on("-i [/path/to/directory]", "--dir-in [/path/to/directory]", "Specify the directory where the images are found.") do | input | 
         options.input_dir = input
       end
       opts.separator ""
@@ -76,12 +76,12 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-t", "--text", "Set the text to be used in the water mark.") do | text | 
+      opts.on("-t [TEXT]", "--text [TEXT]", "Set the text to be used in the water mark.") do | text | 
         options.mark_text = text
       end
       opts.separator ""
 
-      opts.on("-w", "--watermark", "Specify the image to use for the watermark") do | water | 
+      opts.on("-w [/path/to/image]", "--watermark [/path/to/image]", "Specify the image to use for the watermark") do | water | 
         options.watermark = water
       end
       opts.separator ""
