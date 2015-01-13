@@ -76,8 +76,8 @@ class Parser
       end
       opts.separator ""
 
-      opts.on("-t [TEXT]", "--text [TEXT]", "Set the text to be used in the water mark.") do | text | 
-        options.mark_text = text
+      opts.on("-t [TEXT]", "--text [TEXT]", "Set the text to be used in the water mark.") do | the_text | 
+        options.mark_text = "#{the_text}"
       end
       opts.separator ""
 
