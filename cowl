@@ -134,11 +134,11 @@ class Cowl
 
   def file_name(image, counter)
     base_name = File.basename(image, ".*")
-    new_name = "#{base_name}.png"
-    if File.file?("#{@options.output_dir}/#{MARK_DIR}/#{new_name}")
-      new_name = "#{base_name}_#{counter}.png" 
+    @new_name = "#{base_name}.png"
+    if File.file?("#{@options.output_dir}/#{MARK_DIR}/#{@new_name}")
+      @new_name = "#{base_name}_#{counter}.png" 
     end
-    return new_name
+    return @new_name
   end
 
   def copy
@@ -146,7 +146,7 @@ class Cowl
     @working_images.each do | img |
       num += 1
       new_file = self.file_name(img, num)
-      puts "Making a copy of #{img} as #{new_file}."
+      puts "Making a copy of #{new_file}."
       image = Magick::Image.read(img).first
       image.format = "PNG"
       image.despeckle
@@ -162,7 +162,7 @@ class Cowl
     self.copied_files
     puts "Combining images into one pdf."
     pdf = Magick::ImageList.new(*@copied_images)
-    pdf.write("#{@options.output_dir}/combined.pdf")
+    pdf.write("#{@options.output_dir}/#{@new_name}-combined.pdf")
   end
 
   def watermark(image)
@@ -197,16 +197,17 @@ class Cowl
     @copied_images.each do | img |
       puts "Running OCR on #{img}"
       base_name = File.basename(img, ".*")
-      ocr = RTesseract.new(img, :lang => "deu")
-      File.open("#{@options.output_dir}/#{OCR_DIR}/#{base_name}.txt", 'w') { |file| file.write(ocr) }
+      #ocr = RTesseract.new(img, :lang => "deu")
+      #File.open("#{@options.output_dir}/#{OCR_DIR}/#{base_name}.txt", 'w') { |file| file.write(ocr) }
+      %x[tesseract "#{img}" "#{@options.output_dir}/#{OCR_DIR}/#{base_name}" -l deu]
     end
   end
 
   def run
     self.clean unless @options.cleanup == false
+    self.to_text unless @options.no_text == true
     self.add_mark unless @options.no_watermark == true
     self.to_pdf unless @options.no_pdf == true
-    self.to_text unless @options.no_text == true
   end
 
 end #Cowl
