@@ -16,7 +16,7 @@ class Parser
     options.no_pdf = false
     options.no_text = false
     options.input_dir = FileUtils.pwd
-    options.language = ":deu"
+    options.language = "deu"
     options.mark_text = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
     options.output_dir = FileUtils.pwd + "/output"
     options.watermark = FileUtils.pwd + "/mark.png" # TODO: get date from image file
@@ -199,7 +199,7 @@ class Cowl
       base_name = File.basename(img, ".*")
       #ocr = RTesseract.new(img, :lang => "deu")
       #File.open("#{@options.output_dir}/#{OCR_DIR}/#{base_name}.txt", 'w') { |file| file.write(ocr) }
-      %x[tesseract "#{img}" "#{@options.output_dir}/#{OCR_DIR}/#{base_name}" -l deu]
+      %x[tesseract "#{img}" "#{@options.output_dir}/#{OCR_DIR}/#{base_name}" -l #{@options.language}]
     end
   end
 
