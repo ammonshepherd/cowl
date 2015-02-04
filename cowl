@@ -15,6 +15,7 @@ class Parser
     options.no_watermark = false
     options.no_pdf = false
     options.no_text = false
+    options.pdf2png = false
     options.input_dir = FileUtils.pwd
     options.language = "deu"
     options.mark_text = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file
@@ -48,6 +49,11 @@ class Parser
 
       opts.on("-d [/path/to/directory]", "--dir-out [/path/to/directory]", "Specify a directory where the watermarked images and OCR files are created.") do | output | 
         options.output_dir = output
+      end
+      opts.separator ""
+
+      opts.on("-g", "--pdf2png", "Converts PDF files into PNG image files") do | pdf | 
+        options.pdf2png = true
       end
       opts.separator ""
 
@@ -165,6 +171,16 @@ class Cowl
     pdf.write("#{@options.output_dir}/#{@new_name}-combined.pdf")
   end
 
+  def pdf2png
+    @pdf_files ||= Dir.glob("#{@options.input_dir}/*.pdf", File::FNM_CASEFOLD)
+    @pdf_files.each do |pdf|
+      base_name = File.basename(pdf, ".*")
+      file_name = File.basename(pdf)
+      puts "Creating PNGS from #{file_name}"
+      %x[gs -dSAFER -sDEVICE=png16m -dINTERPOLATE -dNumRenderingThreads=8 -r300 -o #{base_name}-%03d.png -c 30000000 setvmthreshold -f #{file_name}]
+    end
+  end
+
   def watermark(image)
     height = image.columns / 30
     wmark = Magick::Draw.new
@@ -185,7 +201,8 @@ class Cowl
   def add_mark
     self.copied_files
     @copied_images.each do | img |
-      puts "Putting watermark on #{img}."
+      base_name = File.basename(img)
+      puts "Putting watermark on #{@options.output_dir}/#{OCR_DIR}/#{base_name}."
       image = Magick::Image.read(img).first
       self.watermark(image)
       image.write(img)
@@ -195,16 +212,18 @@ class Cowl
   def to_text
     self.copied_files
     @copied_images.each do | img |
-      puts "Running OCR on #{img}"
-      base_name = File.basename(img, ".*")
+      base_name = File.basename(img)
+      file_name = File.basename(img, ".*")
+      puts "Running OCR on #{base_name}"
       #ocr = RTesseract.new(img, :lang => "deu")
       #File.open("#{@options.output_dir}/#{OCR_DIR}/#{base_name}.txt", 'w') { |file| file.write(ocr) }
-      %x[tesseract "#{img}" "#{@options.output_dir}/#{OCR_DIR}/#{base_name}" -l #{@options.language}]
+      %x[tesseract "#{img}" "#{@options.output_dir}/#{OCR_DIR}/#{file_name}" -l #{@options.language}]
     end
   end
 
   def run
     self.clean unless @options.cleanup == false
+    self.pdf2png unless @options.pdf2png == false
     self.to_text unless @options.no_text == true
     self.add_mark unless @options.no_watermark == true
     self.to_pdf unless @options.no_pdf == true
