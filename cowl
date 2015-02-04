@@ -63,7 +63,6 @@ class Parser
       opts.separator ""
 
       opts.on("-l [LANGUAGE]", "--lang [LANGUAGE]", "Set the language for the OCR program to use. This is the language used in the documents. Default is German [deu].") do | lang | 
-        puts lang
         options.language = lang
       end
       opts.separator ""
