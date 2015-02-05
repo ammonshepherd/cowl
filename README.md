@@ -17,6 +17,8 @@ Optional parameters exist to change and/or turn off certain behaviors.
     -d [/path/to/directory],         Specify a directory where the watermarked
         --dir-out                       images and OCR files are created. 
 
+    -g, --pdf2png                    Converts PDF files into PNG image files
+
     -i [/path/to/directory],         Specify the directory where the images are found.
         --dir-in
 
@@ -41,11 +43,20 @@ Optional parameters exist to change and/or turn off certain behaviors.
 
 This assumes you already have ruby and rubygems installed.
 
+- NOTE: At the moment, you should also have tesseract and GhostScript
+  installed. There are ruby gems to handle these, but they are not playing
+  nicely yet, so these commands are called from the command line for now.
+  - Instructions for installing tesseract:
+    https://code.google.com/p/tesseract-ocr/wiki/ReadMe
+  - Instructions for installing GhostScript: http://www.ghostscript.com/doc/9.15/Install.htm
+    - If you're on a Mac, it is highly recommended that you use homebrew
+      (http://brew.sh/) or some such thing for installing programs
+
 Download the repo in your home directory:
 
     git clone https://github.com/mossiso/cowl
 
-This creates a folder called cowl and put three files into it. Now change directories into the cowl directory.
+This creates a folder called cowl and puts three files into it. Now change directories into the cowl directory.
 
     cd cowl
 
@@ -53,7 +64,7 @@ Get the required gems by running bundler.
 
     bundle
 
-Edit the cowl file to change the default copyright text. Change the line:
+Edit the cowl file to change the default copyright text. Change the line that looks like this:
 
     options.mark_text = "Copyright ©2014 The Marvellous and awesome Me" # TODO: get date from image file                                                  
 
@@ -68,7 +79,7 @@ Run the cowl command
     ruby /home/billy/cowl
 
 Running without any options will create a copy of the images, OCR them, put a
-watermark on the copies, and combine them all into on PDF. 
+watermark on the copies, and combine them all into one PDF. 
 
 The default text for the watermark is hard coded in the cowl script. You can change it there, or use the -t option.
 
@@ -77,3 +88,7 @@ The default text for the watermark is hard coded in the cowl script. You can cha
 To change the language used in the OCR to English
 
     ruby /home/billy/cowl -l eng
+
+If you have a PDF file to start with, run the command with the -g option
+
+    ruby /home/billy/cowl -g
