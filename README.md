@@ -4,6 +4,8 @@
 
     cowl [options]
 
+# Description:
+
 cowl is a program that will take a directory of images
 and do the following actions on each image by default:
 
