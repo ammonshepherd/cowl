@@ -29,7 +29,7 @@ Optional parameters exist to change and/or turn off certain behaviors.
 
     -l, --lang                       Set the language for the OCR program to
                                         use. This is the language used in the
-                                        documents. Default is German [:deu].
+                                        documents. Default is German [deu].
 
     -n, --no-watermark               Don't do the watermark thing.
 
@@ -46,8 +46,11 @@ Optional parameters exist to change and/or turn off certain behaviors.
 
 # Set up
 
-This assumes you already have ruby and rubygems installed.
+This assumes you already have ruby, git and bundler installed.
 
+- Installing Ruby: https://www.ruby-lang.org/en/documentation/installation/
+- Installing Git: http://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+- Installing bundler: http://bundler.io/#getting-started
 - NOTE: At the moment, you should also have tesseract and GhostScript
   installed. There are ruby gems to handle these, but they are not playing
   nicely yet, so these commands are called from the command line for now.
