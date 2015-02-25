@@ -5,7 +5,8 @@
     cowl [options]
 
 cowl is a program that will take a directory of images
-and do the following actions on each image by default: 
+and do the following actions on each image by default:
+
 1. create a copy of the image with or without a watermark, 
 2. OCR the image and create a txt file containing the text, 
 3. compile the images into a single PDF document.
