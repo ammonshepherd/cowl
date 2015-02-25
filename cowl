@@ -6,7 +6,7 @@ require "ostruct"
 require "pp"
 require "fileutils"
 require "RMagick"
-require "rtesseract"
+#require "rtesseract"
 
 class Parser 
   def self.parse(args)
@@ -24,10 +24,12 @@ class Parser
 
 
     opt_parser = OptionParser.new do | opts | 
-      opts.banner = "Usage: cowl [options]"
-      opts.separator "
-      cowl is a program that will take a directory of images
-      and do the following actions on each image by default: 
+      opts.banner = "Usage: 
+      ruby cowl [options]"
+      opts.separator ""
+      opts.separator "Description:
+      cowl is a program that will take a directory of images and do the
+      following actions on each image by default:
 
         1. create a copy of the image with or without a watermark, 
         2. OCR the image and create a txt file containing the text, 
