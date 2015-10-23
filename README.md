@@ -97,6 +97,7 @@ To change the language used in the OCR to English
 
     ruby /home/billy/cowl -l eng
 
-If you have a PDF file to start with, run the command with the -g option
+If you have a PDF file to start with, run the command with the -g option (the p
+option cancels the action to combine all of the PNG images into one PDF)
 
-    ruby /home/billy/cowl -g
+    ruby /home/billy/cowl -gp

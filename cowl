@@ -145,7 +145,8 @@ class Cowl
     base_name = File.basename(image, ".*")
     @new_name = "#{base_name}.png"
     if File.file?("#{@options.output_dir}/#{MARK_DIR}/#{@new_name}")
-      @new_name = "#{base_name}_#{counter}.png" 
+      # rjust: http://ruby-doc.org/core-2.1.0/String.html#method-i-rjust
+      @new_name = "#{base_name}_#{counter.rjust(3, "0")}.png" 
     end
     return @new_name
   end
