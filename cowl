@@ -115,21 +115,41 @@ class Cowl
 
   def initialize(args)
     @options = args
-    self.setup
     self.image_files
-  end
-
-  def setup
-    # Create output directory if it doesn't exist
-    WORK_DIRS.each do | directory |
-      FileUtils.mkdir_p(@options.output_dir + "/#{directory}")
-    end
   end
 
   def clean
     puts "Deleting output directory and all files within."
     FileUtils.rm_rf(options.output_dir)
     exit
+  end
+
+  def pdf2png
+    @pdf_files ||= Dir.glob("#{@options.input_dir}/*.pdf", File::FNM_CASEFOLD)
+    @pdf_files.each do |pdf|
+      file_name = File.basename(pdf)
+      if file_name.match(' ')
+        puts "Removing spaces from filename."
+        new_file = file_name.gsub(/\s+/, '-')
+        FileUtils.mv file_name, new_file
+      else
+        new_file = file_name
+      end
+
+      base_name = new_file.gsub(/\.pdf/, '')
+      puts "Creating PNGs from #{new_file}"
+      %x[gs -dSAFER -sDEVICE=png16m -dINTERPOLATE -dNumRenderingThreads=8 -r300 -o #{base_name}-%03d.png -c 30000000 setvmthreshold -f #{new_file}]
+    end
+
+    # Don't execute any other functions.
+    exit
+  end
+
+  def output_dir
+    # Create output directory if it doesn't exist
+    WORK_DIRS.each do | directory |
+      FileUtils.mkdir_p(@options.output_dir + "/#{directory}")
+    end
   end
 
   def image_files
@@ -176,16 +196,6 @@ class Cowl
     pdf.write("#{@options.output_dir}/#{@new_name}-combined.pdf")
   end
 
-  def pdf2png
-    @pdf_files ||= Dir.glob("#{@options.input_dir}/*.pdf", File::FNM_CASEFOLD)
-    @pdf_files.each do |pdf|
-      base_name = File.basename(pdf, ".*")
-      file_name = File.basename(pdf)
-      puts "Creating PNGs from #{file_name}"
-      %x[gs -dSAFER -sDEVICE=png16m -dINTERPOLATE -dNumRenderingThreads=8 -r300 -o #{base_name}-%03d.png -c 30000000 setvmthreshold -f #{file_name}]
-    end
-  end
-
   def watermark(image)
     height = image.columns / 30
     wmark = Magick::Draw.new
@@ -229,6 +239,7 @@ class Cowl
   def run
     self.clean unless @options.cleanup == false
     self.pdf2png unless @options.pdf_to_png == false
+    self.output_dir
     self.to_text unless @options.no_text == true
     self.add_mark unless @options.no_watermark == true
     self.to_pdf unless @options.no_pdf == true
